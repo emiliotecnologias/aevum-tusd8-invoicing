@@ -1,0 +1,25 @@
+No files changed, compilation skipped
+
+Ran 19 tests for test/InvoiceRegistry.t.sol:InvoiceRegistryTest
+[PASS] testFuzz_CreateAndPay(uint256,uint64) (runs: 256, μ: 329236, ~: 330327)
+[PASS] test_Cancel_ByIssuer() (gas: 288782)
+[PASS] test_Cancel_ByNonIssuerReverts() (gas: 183728)
+[PASS] test_CreateInvoice_StoresFields() (gas: 203914)
+[PASS] test_CreateInvoice_ZeroAmountReverts() (gas: 35405)
+[PASS] test_GetInvoice_NotFoundReverts() (gas: 12837)
+[PASS] test_IsOverdue() (gas: 340773)
+[PASS] test_Mock_PermitFlow() (gas: 123813)
+[PASS] test_PayWithAuthorization_ExpiredReverts() (gas: 242052)
+[PASS] test_PayWithAuthorization_GaslessFlow() (gas: 349824)
+[PASS] test_PayWithAuthorization_NonceBoundToInvoice() (gas: 374419)
+[PASS] test_PayWithAuthorization_RelayerCannotChangeAmount() (gas: 252946)
+[PASS] test_PayWithAuthorization_ReplayReverts() (gas: 341807)
+[PASS] test_PayWithAuthorization_WrongPayerReverts() (gas: 220673)
+[PASS] test_Pay_AnyoneWhenPayerUnset() (gas: 279905)
+[PASS] test_Pay_StandardFlow() (gas: 354050)
+[PASS] test_Pay_TwiceReverts() (gas: 334447)
+[PASS] test_Pay_WithoutApprovalReverts() (gas: 219598)
+[PASS] test_Pay_WrongPayerReverts() (gas: 243345)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 67.55ms (134.35ms CPU time)
+
+Ran 1 test suite in 68.23ms (67.55ms CPU time): 19 tests passed, 0 failed, 0 skipped (19 total tests)

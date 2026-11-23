@@ -1,0 +1,113 @@
+
+================================================================
+1. Deploy MockUSD8 + InvoiceRegistry to local anvil (Shanghai)
+================================================================
+connected: chain_id=31337, block=0
+MockUSD8 (tUSD8 stand-in): 0x5FbDB2315678afecb367f032d93F642f64180aa3
+InvoiceRegistry:           0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+minted 1,000.00 tUSD8 to payer 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+
+================================================================
+2. Issuer creates three invoices
+================================================================
+$ python agent/agent.py create --amount 25.50 --payer 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --memo Video editing - 5 short clips --client Acme Media --due-in-days 7
+created invoice #1: 25.50 tUSD8, payer=0x70997970C51812dc3A010C7d01b50e0d17dc79C8, due=2026-11-30 03:32 UTC, tx=3593449e1c86be5512f85722b9187f7c0ecd23f60fb8b82e9efe254a91f6e773
+$ python agent/agent.py create --amount 120.00 --payer 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --memo Landing page design + build --client Acme Media --due-in-days 3
+created invoice #2: 120.00 tUSD8, payer=0x70997970C51812dc3A010C7d01b50e0d17dc79C8, due=2026-11-26 03:32 UTC, tx=bb7cfdd16d06478f2e07bd79878e389c13920606f09a969a50579bd41fe62e8e
+$ python agent/agent.py create --amount 45.00 --payer 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --memo Subtitles EN to ES - 3 videos --client Beta Studio --due-in-days -2
+created invoice #3: 45.00 tUSD8, payer=0x70997970C51812dc3A010C7d01b50e0d17dc79C8, due=2026-11-21 03:32 UTC, tx=4a0d5cacc78eedabffde00d0620c58eafef9ecd1558c359e40f2af83f7867e15
+
+================================================================
+3. Client pays invoice #1 the standard way (approve + pay)
+================================================================
+$ python agent/agent.py pay --invoice 1
+paid invoice #1 (25.50 tUSD8), tx=a08ad266bd167b7f337a854bad9f6a5e619e060e0de593eba6dc4c1072ea4bdf
+
+================================================================
+4. Client pays invoice #2 GASLESSLY (EIP-3009 signature, relayer submits)
+================================================================
+$ python agent/agent.py pay-gasless --invoice 2
+payer 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 signed EIP-3009 authorization for invoice #2 (120.00 tUSD8) — payer spent no gas
+relayer submitted gasless payment, tx=ff44bb75734f97e8100186c41b9ce0598c47a9610473c0e4026b66d15241cd85
+
+================================================================
+5. Agent reconciles chain events and generates receipts
+================================================================
+$ python agent/agent.py watch
+  [block 4] InvoiceCreated #1 amount=25.50 tUSD8 payer=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  [block 5] InvoiceCreated #2 amount=120.00 tUSD8 payer=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  [block 6] InvoiceCreated #3 amount=45.00 tUSD8 payer=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  [block 8] InvoicePaid #1 amount=25.50 tUSD8 -> receipt generated
+  [block 9] InvoicePaid #2 amount=120.00 tUSD8 -> receipt generated
+watch: processed blocks 0..9, 5 event(s), 2 new receipt(s)
+$ python agent/agent.py receipts
+PAYMENT RECEIPT — Emilio Tecnologías
+----------------------------------------------------
+Invoice:      #1
+Client:       Acme Media
+Description:  Video editing - 5 short clips
+Amount:       25.50 tUSD8
+Paid by:      0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+Paid at:      2026-11-23 03:32 UTC
+Transaction:  a08ad266bd167b7f337a854bad9f6a5e619e060e0de593eba6dc4c1072ea4bdf
+Explorer:     https://explorer-test.qday.info/tx/a08ad266bd167b7f337a854bad9f6a5e619e060e0de593eba6dc4c1072ea4bdf
+Status:       SETTLED (direct payer -> issuer, no escrow)
+
+PAYMENT RECEIPT — Emilio Tecnologías
+----------------------------------------------------
+Invoice:      #2
+Client:       Acme Media
+Description:  Landing page design + build
+Amount:       120.00 tUSD8
+Paid by:      0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+Paid at:      2026-11-23 03:32 UTC
+Transaction:  ff44bb75734f97e8100186c41b9ce0598c47a9610473c0e4026b66d15241cd85
+Explorer:     https://explorer-test.qday.info/tx/ff44bb75734f97e8100186c41b9ce0598c47a9610473c0e4026b66d15241cd85
+Status:       SETTLED (direct payer -> issuer, no escrow)
+
+receipts: 2 total
+
+================================================================
+6. Agent drafts a reminder for overdue invoice #3
+================================================================
+$ python agent/agent.py remind
+drafted firm reminder for invoice #3 -> /home/hatch/workspace/emilio-tecnologias/bounties/aevum-builder/demo/outbox/reminder-invoice-3-firm.txt
+remind: 1 new draft(s) in /home/hatch/workspace/emilio-tecnologias/bounties/aevum-builder/demo/outbox/ (review before sending)
+
+--- reminder-invoice-3-firm.txt ---
+Subject: Overdue: invoice #3 (45.00 tUSD8)
+
+Hi Beta Studio,
+
+Invoice #3 (Subtitles EN to ES - 3 videos) for 45.00 tUSD8 was due on 2026-11-21 03:32 UTC and is now 2 day(s) overdue. Please settle it as soon as possible, or let me know if something is wrong.
+
+Emilio Tecnologías
+
+
+================================================================
+7. Agent builds the dashboard report
+================================================================
+$ python agent/agent.py report
+report: wrote /home/hatch/workspace/emilio-tecnologias/bounties/aevum-builder/demo/report/dashboard.html and /home/hatch/workspace/emilio-tecnologias/bounties/aevum-builder/demo/report/summary.json
+{
+  "generated_at": "2026-11-23 03:33 UTC",
+  "invoices_total": 3,
+  "invoices_paid": 2,
+  "invoices_open": 1,
+  "total_settled_tusd8": "145.50",
+  "total_outstanding_tusd8": "45.00",
+  "receipts": 2,
+  "reminders_drafted": 1
+}
+
+================================================================
+8. Final balances (direct settlement, registry holds nothing)
+================================================================
+issuer  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266: 145.50 tUSD8
+payer   0x70997970C51812dc3A010C7d01b50e0d17dc79C8: 854.50 tUSD8
+registry 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512: 0.00 tUSD8
+invoice #1: Paid, amount=25.50 tUSD8, paidBy=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+invoice #2: Paid, amount=120.00 tUSD8, paidBy=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+invoice #3: Open, amount=45.00 tUSD8, paidBy=0x0000000000000000000000000000000000000000
+
+DEMO COMPLETE — all flows executed against a real local chain.

@@ -1,0 +1,20 @@
+[profile.default]
+src = "src"
+out = "out"
+test = "test"
+script = "script"
+libs = []
+# Aevum testnet runs the Shanghai EVM: no Cancun opcodes (MCOPY, TSTORE/TLOAD,
+# blob ops). Keep evm_version pinned to "shanghai" or bytecode that passes local
+# tests can revert with "invalid opcode" on chain 44005.
+solc_version = "0.8.24"
+evm_version = "shanghai"
+optimizer = true
+optimizer_runs = 200
+
+[rpc_endpoints]
+aevum = "https://rpc-test.qday.info"
+local = "http://127.0.0.1:8545"
+
+[fmt]
+line_length = 110
